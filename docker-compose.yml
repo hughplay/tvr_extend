@@ -1,0 +1,25 @@
+version: "3.9"
+services:
+    lab:
+        container_name: ${PROJECT}
+        runtime: nvidia
+        build:
+            context: env/
+            dockerfile: Dockerfile
+            args:
+                - USER_ID=${UID}
+                - GROUP_ID=${GID}
+                - USER_NAME=${USER_NAME}
+        image: pytorch181_local
+        environment:
+            - TZ=Asia/Shanghai
+            - TORCH_HOME=/data/torch_model
+        ipc: host
+        hostname: docker
+        working_dir: /code
+        command: ['sleep', 'infinity']
+        volumes:
+            - ${CODE_ROOT}:/code
+            - ${DATA_ROOT}:/data
+            - ${LOG_ROOT}:/outputs
+            - ./data/gen_src/resource:/data/trance/resource

@@ -1,0 +1,9 @@
+checkpoint:
+  _target_: pytorch_lightning.callbacks.ModelCheckpoint
+  dirpath: log/checkpoints
+  filename: '{epoch}-{step}-{val_acc:.2f}'
+  save_last: true
+  monitor: val_acc
+  save_top_k: 2
+  verbose: true
+  mode: 'min'

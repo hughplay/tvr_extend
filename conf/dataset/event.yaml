@@ -1,0 +1,10 @@
+_target_: dataset.trance.TRANCEDataModule
+name: trance_event
+
+data_root: '/data/trance'
+values_json: '/data/trance/resource/values.json'
+properties_json: '/data/trance/resource/properties.json'
+
+batch_size: 128
+num_workers: 8
+pin_memory: true

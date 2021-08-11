@@ -1,0 +1,6 @@
+_target_: model.SingleBCNN
+height: 120
+width: 160
+arch: 'vgg11_bn'
+fc_img_en: [128]
+fc_fusion: [128]

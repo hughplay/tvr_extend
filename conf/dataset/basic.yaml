@@ -1,0 +1,13 @@
+_target_: dataset.trance.TRANCEDataModule
+name: trance_basic
+
+data_root: '/data/trance'
+values_json: '/data/trance/resource/values.json'
+properties_json: '/data/trance/resource/properties.json'
+
+img_aug: true
+move_out_aug: true
+
+batch_size: 128
+num_workers: 8
+pin_memory: True

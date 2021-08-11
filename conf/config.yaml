@@ -1,0 +1,26 @@
+defaults:
+  - pipeline: reasoner
+  - dataset: event
+  - model: concat_resnet
+  - evaluator: event
+  - optim: adamw
+  - scheduler: step
+  - recorder: event
+  - callbacks: [checkpoint, lr_monitor]
+  - logging: null
+  - mode: debug
+  - pl_trainer: default
+  - override hydra/job_logging: colorlog
+  - override hydra/hydra_logging: colorlog
+
+
+model:
+  c_obj: 19
+  n_pair: 33
+
+run_test: true
+seed: 2021
+
+hydra:
+  run:
+    dir: /outputs/tvr/${mode}/${dataset.name}/${model._target_}/${now:%Y-%m-%d_%H-%M-%S}

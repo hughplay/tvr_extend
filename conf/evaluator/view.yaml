@@ -1,0 +1,3 @@
+_target_: evaluation.ViewEvaluator
+values_json: '/data/trance/resource/values.json'
+properties_json: '/data/trance/resource/properties.json'
