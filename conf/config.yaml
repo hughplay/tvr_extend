@@ -24,3 +24,6 @@ seed: 2021
 hydra:
   run:
     dir: /outputs/tvr/${mode}/${dataset.name}/${model._target_}/${now:%Y-%m-%d_%H-%M-%S}
+  sweep:
+    dir: /outputs/tvr/${mode}/${dataset.name}/${model._target_}/${now:%Y-%m-%d_%H-%M-%S}
+    subdir: ${hydra.job.num}

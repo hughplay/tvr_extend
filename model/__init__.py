@@ -4,7 +4,8 @@ from .single_trancenet import (
     SingleSubtractCNN,
     SingleSubtractResNet,
     SingleDUDA,
-    SingleBCNN
+    SingleBCNN,
+    SingleDetectorTranceNet
 )
 
 from .trancenet import (
@@ -13,5 +14,6 @@ from .trancenet import (
     SubtractCNN,
     SubtractResNet,
     DUDA,
-    BCNN
+    BCNN,
+    Detector
 )

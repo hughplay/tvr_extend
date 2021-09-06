@@ -60,7 +60,7 @@ def preprocess(
     assert split.count(-1) <= 1
 
     root = Path(directory)
-    data_path = root / 'data.jsonl'
+    data_path = root / 'data_mask.jsonl'
     image_dir = root / 'image'
     h5_path = root / 'data.h5'
 

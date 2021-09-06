@@ -1,0 +1,12 @@
+# @package _global_
+defaults:
+  - override /dataset: basic
+  - override /model: single_detector
+  - override /evaluator: basic
+  - override /optim: adamw
+  - override /scheduler: step
+  - override /recorder: basic
+  - override /callbacks: [checkpoint, lr_monitor]
+
+dataset:
+  use_box: true

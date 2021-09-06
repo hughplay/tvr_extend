@@ -1,7 +1,9 @@
 early_stopping:
-  _target_: pytorch_lightning.callbacks.EarlyStopping
+  # _target_: pytorch_lightning.callbacks.EarlyStopping
+  _target_: utils.callbacks.EarlyStopping
   monitor: val_acc
   min_delta: 0.
   patience: 3
   mode: max
-  check_on_train_epoch_end: False
+  check_on_train_epoch_end: True
+  min_epochs: 25

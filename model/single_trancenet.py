@@ -1,6 +1,6 @@
 from torch import nn
 
-from .encoder import CNNEncoder, ResNetEncoder, DUDAEncoder, BCNNEncoder
+from .encoder import CNNEncoder, ResNetEncoder, DUDAEncoder, BCNNEncoder, DetectorEncoder
 from .decoder import TransformationDecoder
 
 
@@ -81,4 +81,30 @@ class SingleBCNN(nn.Module):
         img_feat = self.fc(self.bcnn_encoder(init, fin))
         obj_choice, pair_choice = self.decoder(
             init_desc, img_feat, obj_target_vec=obj_target_vec)
+        return obj_choice, pair_choice
+
+
+class SingleDetectorTranceNet(nn.Module):
+
+    def __init__(
+            self, arch="resnet18", mode='subtract', roi_type='align',
+            roi_output_size=(7,7), roi_sample_ratio=-1,
+            height=120, width=160, c_obj=19, n_pair=33,
+            fc_img_en=[1024, 256], fc_fusion=[256, 256]):
+        super().__init__()
+        self.encoder = DetectorEncoder(
+            mode, arch=arch, roi_output_size=roi_output_size,
+            roi_type=roi_type, roi_sample_ratio=roi_sample_ratio)
+        c_flat = self.encoder.get_output_shape(height, width)
+        self.decoder = TransformationDecoder(
+            c_flat, c_obj, n_pair, fc_img_en, fc_fusion)
+
+    def forward(
+            self, init, fin, init_desc, init_boxes, fin_boxes, n_init, n_fin,
+            obj_target_vec=None):
+        img_feat = self.encoder(
+            init, fin, init_boxes, fin_boxes, n_init, n_fin)
+        img_feat_flat = img_feat.flatten(start_dim=1)
+        obj_choice, pair_choice = self.decoder(
+            init_desc, img_feat_flat, obj_target_vec=obj_target_vec)
         return obj_choice, pair_choice

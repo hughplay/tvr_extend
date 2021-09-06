@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 from .block import FCBlocks
-from .encoder import CNNEncoder, ResNetEncoder, DUDAEncoder, BCNNEncoder
+from .encoder import CNNEncoder, ResNetEncoder, DUDAEncoder, BCNNEncoder, DetectorEncoder
 from .decoder import TransformationDecoder
 
 
@@ -173,3 +173,42 @@ class BCNN(TranceNet):
         img_feat = self.encoder(init, fin)
         h0 = self.fc(img_feat).unsqueeze(0)
         return h0
+
+
+class Detector(TranceNet):
+
+    def __init__(
+            self, *args, arch="resnet18", mode='subtract', roi_type='align',
+            roi_output_size=(7,7), roi_sample_ratio=-1, **kwargs):
+        encoder = DetectorEncoder(
+            mode, arch=arch, roi_output_size=roi_output_size,
+            roi_type=roi_type, roi_sample_ratio=roi_sample_ratio)
+        super().__init__(encoder, *args, **kwargs)
+
+    def get_fc_in(self, height, width):
+        return self.encoder.get_output_shape(height, width)
+
+    def compute_h0(self, init, fin, init_boxes, fin_boxes, n_init, n_fin):
+        img_feat = self.encoder(
+            init, fin, init_boxes, fin_boxes, n_init, n_fin)
+        h0 = self.fc(img_feat).unsqueeze(0)
+        return h0
+
+    def forward(
+            self, init, fin, init_desc, init_boxes, fin_boxes, n_init, n_fin,
+            obj_target_vec=None, pair_target=None):
+        h0 = self.compute_h0(init, fin, init_boxes, fin_boxes, n_init, n_fin)
+        if self.rnn == 'LSTM':
+            h0 = (h0, torch.zeros_like(h0))
+        B = init.shape[0]
+        init_desc = torch.cat(
+            [init_desc, self.no_obj.expand(B, 1, -1)], dim=1)
+        x0_obj = self.obj_init_input.expand(B, 1, -1)
+        x0_pair = self.pair_init_input.expand(B, 1, -1)
+        if self.training and self.teacher_forcing:
+            obj_choices, pair_choices = self.tearcher_forcing_forward(
+                x0_obj, x0_pair, h0, init_desc, obj_target_vec, pair_target)
+        else:
+            obj_choices, pair_choices = self.iterative_forward(
+                x0_obj, x0_pair, h0, init_desc)
+        return obj_choices, pair_choices

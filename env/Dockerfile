@@ -1,13 +1,14 @@
-FROM deepbase/pytorch:1.8.1
+# FROM deepbase/pytorch:1.8.1
+FROM deepbase/project:tvr
 
 ARG USER_ID=1011
 ARG GROUP_ID=1011
 ARG USER_NAME=docker
 
-COPY . /tmp
+# COPY . /tmp
 RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
-RUN CC="cc -mavx2" pip install -U --force-reinstall pillow-simd
+# RUN pip install --no-cache-dir -r /tmp/requirements.txt
+# RUN CC="cc -mavx2" pip install --no-cache-dir -U --force-reinstall pillow-simd
 
 RUN if [ $USER_NAME != "root" ] ; \
     then addgroup --gid ${GROUP_ID} ${USER_NAME} \

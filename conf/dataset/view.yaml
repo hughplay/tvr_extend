@@ -8,6 +8,9 @@ properties_json: '/data/trance/resource/properties.json'
 img_aug: true
 move_out_aug: true
 
+use_box: false
+box_type: gt
+
 batch_size: 128
-num_workers: 6
+num_workers: 16
 pin_memory: True

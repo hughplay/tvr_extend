@@ -1,0 +1,10 @@
+_target_: model.SingleDetectorTranceNet
+arch: 'resnet18'
+mode: 'subtract'
+roi_type: 'pool'
+roi_output_size: [2, 2]
+roi_sample_ratio: -1
+height: 120
+width: 160
+fc_img_en: [128]
+fc_fusion: [128]

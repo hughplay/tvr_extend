@@ -11,9 +11,7 @@ logger = logging.getLogger(__name__)
 
 class LitReasoner(LightningModule):
 
-    def __init__(
-        self, cfg: Dict[str, Any], **kwargs
-    ):
+    def __init__(self, cfg: Dict[str, Any]):
         super().__init__()
         self.cfg = cfg
         self.save_hyperparameters()
@@ -38,21 +36,30 @@ class LitReasoner(LightningModule):
         obj_target, pair_target = [x.to(self.device) for x in batch['target']]
         obj_target_vec = batch['obj_target_vec'].to(self.device)
 
+        inputs = [init, fin, init_desc]
+        if self.cfg.dataset.use_box:
+            inputs = [
+                *inputs, batch['init_boxes'].to(self.device),
+                batch['fin_boxes'].to(self.device),
+                tuple(batch['n_init']), tuple(batch['n_fin'])]
         if 'basic' in self.cfg.dataset.name:
             options = batch['options'].to(self.device)
             if training:
-                inputs = (init, fin, init_desc, obj_target_vec)
-            else:
-                inputs = (init, fin, init_desc)
-            targets = (obj_target, pair_target, options)
+                inputs = [*inputs, obj_target_vec]
+            targets = [obj_target, pair_target, options]
             return inputs, targets
         else:
             fin_desc = batch['fin_desc'].to(self.device).float()
             if training:
-                inputs = (init, fin, init_desc, obj_target_vec, pair_target)
+                inputs = [*inputs, obj_target_vec, pair_target]
+            if 'event' in self.cfg.dataset.name:
+                targets = (init_desc, fin_desc, obj_target, pair_target)
+            elif 'view' in self.cfg.dataset.name:
+                targets = (
+                    init_desc, fin_desc, obj_target, pair_target,
+                    batch['view'], self.trainer.datamodule.final_views)
             else:
-                inputs = (init, fin, init_desc)
-            targets = (init_desc, fin_desc, obj_target, pair_target)
+                raise NotImplementedError
             return inputs, targets
 
     def training_step(self, batch, batch_idx):
