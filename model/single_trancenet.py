@@ -1,60 +1,86 @@
 from torch import nn
 
-from .encoder import CNNEncoder, ResNetEncoder, DUDAEncoder, BCNNEncoder, DetectorEncoder
+from .encoder import (
+    CNNEncoder,
+    ResNetEncoder,
+    DUDAEncoder,
+    BCNNEncoder,
+    DetectorEncoder,
+)
 from .decoder import TransformationDecoder
 
 
 class SingleTranceNet(nn.Module):
-
     def __init__(
-            self, encoder, height=120, width=160, c_obj=19, n_pair=33,
-            fc_img_en=[1024, 256], fc_fusion=[256, 256]):
+        self,
+        encoder,
+        height=120,
+        width=160,
+        c_obj=19,
+        n_pair=33,
+        fc_img_en=[1024, 256],
+        fc_fusion=[256, 256],
+    ):
         super().__init__()
         self.encoder = encoder
         c_out, h_out, w_out = self.encoder.get_output_shape(height, width)
         c_flat = c_out * h_out * w_out
         self.decoder = TransformationDecoder(
-            c_flat, c_obj, n_pair, fc_img_en, fc_fusion)
+            c_flat, c_obj, n_pair, fc_img_en, fc_fusion
+        )
 
     def forward(self, init, fin, init_desc, obj_target_vec=None):
         img_feat = self.encoder(init, fin)
         img_feat_flat = img_feat.flatten(start_dim=1)
         obj_choice, pair_choice = self.decoder(
-            init_desc, img_feat_flat, obj_target_vec=obj_target_vec)
+            init_desc, img_feat_flat, obj_target_vec=obj_target_vec
+        )
         return obj_choice, pair_choice
 
 
 class SingleConcatCNN(SingleTranceNet):
-
     def __init__(
-            self, *args, cnn_c_kernels=[16, 32, 64, 64],
-            cnn_s_kernels=[5, 3, 3, 3], **kwargs):
+        self,
+        *args,
+        cnn_c_kernels=[16, 32, 64, 64],
+        cnn_s_kernels=[5, 3, 3, 3],
+        **kwargs
+    ):
         encoder = CNNEncoder(
-            'concat', c_kernels=cnn_c_kernels, s_kernels=cnn_s_kernels)
+            "concat", c_kernels=cnn_c_kernels, s_kernels=cnn_s_kernels
+        )
         super().__init__(encoder, *args, **kwargs)
 
 
 class SingleSubtractCNN(SingleTranceNet):
-
     def __init__(
-            self, *args, cnn_c_kernels=[16, 32, 64, 64],
-            cnn_s_kernels=[5, 3, 3, 3], **kwargs):
+        self,
+        *args,
+        cnn_c_kernels=[16, 32, 64, 64],
+        cnn_s_kernels=[5, 3, 3, 3],
+        **kwargs
+    ):
         encoder = CNNEncoder(
-            'subtract', c_kernels=cnn_c_kernels, s_kernels=cnn_s_kernels)
+            "subtract", c_kernels=cnn_c_kernels, s_kernels=cnn_s_kernels
+        )
         super().__init__(encoder, *args, **kwargs)
 
 
 class SingleConcatResNet(SingleTranceNet):
-
     def __init__(self, *args, arch="resnet18", **kwargs):
-        encoder = ResNetEncoder('concat', arch=arch)
+        encoder = ResNetEncoder("concat", arch=arch)
+        super().__init__(encoder, *args, **kwargs)
+
+
+class SingleSubcatResNet(SingleTranceNet):
+    def __init__(self, *args, arch="resnet18", **kwargs):
+        encoder = ResNetEncoder("subcat", arch=arch)
         super().__init__(encoder, *args, **kwargs)
 
 
 class SingleSubtractResNet(SingleTranceNet):
-
     def __init__(self, *args, arch="resnet18", **kwargs):
-        encoder = ResNetEncoder('subtract', arch=arch)
+        encoder = ResNetEncoder("subtract", arch=arch)
         super().__init__(encoder, *args, **kwargs)
 
 
@@ -65,46 +91,83 @@ class SingleDUDA(SingleTranceNet):
 
 
 class SingleBCNN(nn.Module):
-
     def __init__(
-            self, arch='vgg11_bn', height=240, width=320, c_obj=19, n_pair=33,
-            fc_img_en=[256, 256], fc_fusion=[256, 256]):
+        self,
+        arch="vgg11_bn",
+        height=240,
+        width=320,
+        c_obj=19,
+        n_pair=33,
+        fc_img_en=[256, 256],
+        fc_fusion=[256, 256],
+    ):
         super().__init__()
         self.bcnn_encoder = BCNNEncoder(arch)
         bcnn_out = self.bcnn_encoder.get_output_shape(height, width)
         c_out = fc_img_en[0]
         self.fc = nn.Linear(bcnn_out, c_out)
         self.decoder = TransformationDecoder(
-            c_out, c_obj, n_pair, fc_img_en, fc_fusion)
+            c_out, c_obj, n_pair, fc_img_en, fc_fusion
+        )
 
     def forward(self, init, fin, init_desc, obj_target_vec=None):
         img_feat = self.fc(self.bcnn_encoder(init, fin))
         obj_choice, pair_choice = self.decoder(
-            init_desc, img_feat, obj_target_vec=obj_target_vec)
+            init_desc, img_feat, obj_target_vec=obj_target_vec
+        )
         return obj_choice, pair_choice
 
 
 class SingleDetectorTranceNet(nn.Module):
-
     def __init__(
-            self, arch="resnet18", mode='subtract', roi_type='align',
-            roi_output_size=(7,7), roi_sample_ratio=-1,
-            height=120, width=160, c_obj=19, n_pair=33,
-            fc_img_en=[1024, 256], fc_fusion=[256, 256]):
+        self,
+        mode="subtract",
+        arch="resnet18",
+        in_features=["0", "1", "2", "3"],
+        roi_type="pool",
+        roi_output_size=(2, 2),
+        roi_sample_ratio=-1,
+        hidden_size=768,
+        n_attn_layer=2,
+        n_head=12,
+        height=120,
+        width=160,
+        c_obj=19,
+        n_pair=33,
+        fc_img_en=[1024, 256],
+        fc_fusion=[256, 256],
+    ):
         super().__init__()
         self.encoder = DetectorEncoder(
-            mode, arch=arch, roi_output_size=roi_output_size,
-            roi_type=roi_type, roi_sample_ratio=roi_sample_ratio)
+            mode=mode,
+            arch=arch,
+            in_features=in_features,
+            roi_type=roi_type,
+            roi_output_size=roi_output_size,
+            roi_sample_ratio=roi_sample_ratio,
+            hidden_size=hidden_size,
+            n_attn_layer=n_attn_layer,
+            n_head=n_head
+        )
         c_flat = self.encoder.get_output_shape(height, width)
         self.decoder = TransformationDecoder(
-            c_flat, c_obj, n_pair, fc_img_en, fc_fusion)
+            c_flat, c_obj, n_pair, fc_img_en, fc_fusion
+        )
 
     def forward(
-            self, init, fin, init_desc, init_boxes, fin_boxes, n_init, n_fin,
-            obj_target_vec=None):
-        img_feat = self.encoder(
-            init, fin, init_boxes, fin_boxes, n_init, n_fin)
+        self,
+        init,
+        fin,
+        init_desc,
+        init_boxes,
+        fin_boxes,
+        n_init,
+        n_fin,
+        obj_target_vec=None,
+    ):
+        img_feat = self.encoder(init, fin, init_boxes, fin_boxes, n_init, n_fin)
         img_feat_flat = img_feat.flatten(start_dim=1)
         obj_choice, pair_choice = self.decoder(
-            init_desc, img_feat_flat, obj_target_vec=obj_target_vec)
+            init_desc, img_feat_flat, obj_target_vec=obj_target_vec
+        )
         return obj_choice, pair_choice

@@ -8,9 +8,9 @@ from torchvision.ops import misc as misc_nn_ops
 
 
 def get_norm(name, c_out):
-    if name == 'batch':
+    if name == "batch":
         norm = nn.BatchNorm2d(c_out)
-    elif name == 'instance':
+    elif name == "instance":
         norm = nn.InstanceNorm2d(c_out)
     else:
         norm = None
@@ -18,15 +18,15 @@ def get_norm(name, c_out):
 
 
 def get_act(name):
-    if name == 'relu':
+    if name == "relu":
         activation = nn.ReLU()
-    elif name == 'elu':
-        activation == nn.ELU()
-    elif name == 'leaky_relu':
+    elif name == "elu":
+        activation = nn.ELU()
+    elif name == "leaky_relu":
         activation = nn.LeakyReLU(negative_slope=0.2)
-    elif name == 'tanh':
+    elif name == "tanh":
         activation = nn.Tanh()
-    elif name == 'sigmoid':
+    elif name == "sigmoid":
         activation = nn.Sigmoid()
     else:
         activation = None
@@ -34,9 +34,7 @@ def get_act(name):
 
 
 class ConvBlock(nn.Module):
-
-    def __init__(
-            self, c_in, c_out, s_kernel, stride, norm=None, act=None):
+    def __init__(self, c_in, c_out, s_kernel, stride, norm=None, act=None):
         super().__init__()
 
         self.c_in = c_in
@@ -44,7 +42,8 @@ class ConvBlock(nn.Module):
 
         layers = []
         layers.append(
-            self.get_padded_conv(self.c_in, self.c_out, s_kernel, stride))
+            self.get_padded_conv(self.c_in, self.c_out, s_kernel, stride)
+        )
         if norm:
             layers.append(get_norm(norm, self.c_out))
         if act:
@@ -53,14 +52,14 @@ class ConvBlock(nn.Module):
 
     def get_padded_conv(self, c_in, c_out, s_kernel, stride):
         if (s_kernel - stride) % 2 == 0:
-            s_pad =  (s_kernel - stride) // 2
+            s_pad = (s_kernel - stride) // 2
             conv = nn.Conv2d(c_in, c_out, s_kernel, stride, s_pad)
         else:
             left = (s_kernel - stride) // 2
             right = left + 1
             conv = nn.Sequential(
                 nn.ConstantPad2d((left, right, left, right), 0),
-                nn.Conv2d(c_in, c_out, s_kernel, stride, 0)
+                nn.Conv2d(c_in, c_out, s_kernel, stride, 0),
             )
         return conv
 
@@ -69,17 +68,23 @@ class ConvBlock(nn.Module):
 
 
 class ConvBlocks(nn.Module):
-
     def __init__(
-            self, c_in=3, c_kernels=[16, 32, 64, 64], s_kernels=[5, 3, 3, 3],
-            strides=2, norm='batch', act='relu'):
+        self,
+        c_in=3,
+        c_kernels=[16, 32, 64, 64],
+        s_kernels=[5, 3, 3, 3],
+        strides=2,
+        norm="batch",
+        act="relu",
+    ):
         super().__init__()
 
         if type(strides) is not list:
             strides = [strides] * len(c_kernels)
         assert len(c_kernels) == len(s_kernels) == len(strides), (
-            'The length of channel ({}), size ({}) and stride ({}) must equal'
-            '.'.format(len(c_kernels), len(s_kernels), len(strides)))
+            "The length of channel ({}), size ({}) and stride ({}) must equal"
+            ".".format(len(c_kernels), len(s_kernels), len(strides))
+        )
 
         self.c_in = [c_in] + c_kernels[:-1]
         self.c_out = c_kernels
@@ -90,13 +95,15 @@ class ConvBlocks(nn.Module):
 
         layers = []
         for i, (c_in, c_out, s_kernel, stride) in enumerate(
-                zip(self.c_in, self.c_out, self.s_kernels, self.strides)):
+            zip(self.c_in, self.c_out, self.s_kernels, self.strides)
+        ):
             if i == 0 or i == (len(self.c_in) - 1):
                 layer_norm = layer_act = None
             else:
                 layer_norm, layer_act = self.norm, self.act
-            layers.append(ConvBlock(
-                c_in, c_out, s_kernel, stride, layer_norm, layer_act))
+            layers.append(
+                ConvBlock(c_in, c_out, s_kernel, stride, layer_norm, layer_act)
+            )
 
         self.cnn = nn.Sequential(*layers)
 
@@ -105,7 +112,6 @@ class ConvBlocks(nn.Module):
 
 
 class FCBlock(nn.Module):
-
     def __init__(self, c_in, c_out, act=None, dropout=None):
         super().__init__()
         layers = [nn.Linear(c_in, c_out)]
@@ -121,7 +127,6 @@ class FCBlock(nn.Module):
 
 
 class FCBlocks(nn.Module):
-
     def __init__(self, c_in, c_out, act=None, dropout=None):
         super().__init__()
 
@@ -142,9 +147,7 @@ class FCBlocks(nn.Module):
 
 
 class ResNetBlock(nn.Module):
-
-    def __init__(
-            self, arch='resnet18', avgpool=True, pretrained=False, c_in=3):
+    def __init__(self, arch="resnet18", avgpool=True, pretrained=False, c_in=3):
         super().__init__()
 
         if c_in != 3:
@@ -156,25 +159,30 @@ class ResNetBlock(nn.Module):
         if c_in != 3:
             inplanes = 64
             conv1 = nn.Conv2d(
-                c_in, inplanes, kernel_size=7, stride=2, padding=3,
-                bias=False)
+                c_in, inplanes, kernel_size=7, stride=2, padding=3, bias=False
+            )
             nn.init.kaiming_normal_(
-                conv1.weight, mode='fan_out', nonlinearity='relu')
+                conv1.weight, mode="fan_out", nonlinearity="relu"
+            )
         else:
             conv1 = model.conv1
 
         layers = [
-            conv1, model.bn1,
-            model.relu, model.maxpool,
-            model.layer1, model.layer2,
-            model.layer3, model.layer4
+            conv1,
+            model.bn1,
+            model.relu,
+            model.maxpool,
+            model.layer1,
+            model.layer2,
+            model.layer3,
+            model.layer4,
         ]
         if avgpool:
             layers.append(model.avgpool)
 
         self.encoder = nn.Sequential(*layers)
 
-        if 'Bottleneck' in str(type(model.layer4[-1])):
+        if "Bottleneck" in str(type(model.layer4[-1])):
             self.c_out = model.layer4[-1].conv3.out_channels
         else:
             self.c_out = model.layer4[-1].conv2.out_channels
@@ -190,7 +198,7 @@ def resnet_fpn_backbone(
     c_in=3,
     trainable_layers=5,
     returned_layers=None,
-    extra_blocks=None
+    extra_blocks=None,
 ):
     """
     Constructs a specified ResNet backbone with FPN on top. Freezes the specified number of layers in the backbone.
@@ -228,43 +236,53 @@ def resnet_fpn_backbone(
         pretrained = False
 
     backbone = resnet.__dict__[backbone_name](
-        pretrained=pretrained,
-        norm_layer=norm_layer)
+        pretrained=pretrained, norm_layer=norm_layer
+    )
 
     if c_in != 3:
         inplanes = 64
         backbone.conv1 = nn.Conv2d(
-            c_in, inplanes, kernel_size=7, stride=2, padding=3,
-            bias=False)
+            c_in, inplanes, kernel_size=7, stride=2, padding=3, bias=False
+        )
         nn.init.kaiming_normal_(
-            backbone.conv1.weight, mode='fan_out', nonlinearity='relu')
+            backbone.conv1.weight, mode="fan_out", nonlinearity="relu"
+        )
 
     # select layers that wont be frozen
     assert 0 <= trainable_layers <= 5
-    layers_to_train = ['layer4', 'layer3', 'layer2', 'layer1', 'conv1'][:trainable_layers]
+    layers_to_train = ["layer4", "layer3", "layer2", "layer1", "conv1"][
+        :trainable_layers
+    ]
     if trainable_layers == 5:
-        layers_to_train.append('bn1')
+        layers_to_train.append("bn1")
     for name, parameter in backbone.named_parameters():
         if all([not name.startswith(layer) for layer in layers_to_train]):
             parameter.requires_grad_(False)
 
-    # if extra_blocks is None:
-    #     extra_blocks = LastLevelMaxPool()
+    if extra_blocks is None:
+        extra_blocks = LastLevelMaxPool()
 
     if returned_layers is None:
         returned_layers = [1, 2, 3, 4]
     assert min(returned_layers) > 0 and max(returned_layers) < 5
-    return_layers = {f'layer{k}': str(v) for v, k in enumerate(returned_layers)}
+    return_layers = {f"layer{k}": str(v) for v, k in enumerate(returned_layers)}
 
     in_channels_stage2 = backbone.inplanes // 8
-    in_channels_list = [in_channels_stage2 * 2 ** (i - 1) for i in returned_layers]
+    in_channels_list = [
+        in_channels_stage2 * 2 ** (i - 1) for i in returned_layers
+    ]
     out_channels = 256
-    return BackboneWithFPN(backbone, return_layers, in_channels_list, out_channels, extra_blocks=extra_blocks)
+    return BackboneWithFPN(
+        backbone,
+        return_layers,
+        in_channels_list,
+        out_channels,
+        extra_blocks=extra_blocks,
+    )
 
 
-class VGGBlock(nn.Module):  
-
-    def __init__(self, arch='vgg11_bn', pretrained=False):
+class VGGBlock(nn.Module):
+    def __init__(self, arch="vgg11_bn", pretrained=False):
         super().__init__()
 
         model_func = getattr(vgg, arch)
@@ -272,7 +290,7 @@ class VGGBlock(nn.Module):
 
         self.encoder = nn.Sequential(*list(model.features.children())[:-1])
         for layer in model.features[::-1]:
-            if hasattr(layer, 'out_channels'):
+            if hasattr(layer, "out_channels"):
                 self.c_out = layer.out_channels
                 break
 

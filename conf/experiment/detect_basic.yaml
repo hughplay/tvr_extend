@@ -10,3 +10,4 @@ defaults:
 
 dataset:
   use_box: true
+  full_box: true

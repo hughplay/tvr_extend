@@ -15,6 +15,7 @@ services:
             - TZ=Asia/Shanghai
             - TORCH_HOME=/data/torch_model
         ipc: host
+        pid: host
         hostname: docker
         working_dir: /code
         command: ['sleep', 'infinity']

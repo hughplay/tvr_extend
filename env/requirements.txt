@@ -8,5 +8,5 @@ hydra_colorlog
 omegaconf==2.1.0
 PyYAML==5.3.1
 h5py
---find-links https://dl.fbaipublicfiles.com/detectron2/wheels/cu111/torch1.8/index.html
+--find-links https://dl.fbaipublicfiles.com/detectron2/wheels/cu102/torch1.8/index.html
 detectron2==0.5

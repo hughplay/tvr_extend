@@ -1,6 +1,7 @@
 from .single_trancenet import (
     SingleConcatCNN,
     SingleConcatResNet,
+    SingleSubcatResNet,
     SingleSubtractCNN,
     SingleSubtractResNet,
     SingleDUDA,
@@ -13,6 +14,7 @@ from .trancenet import (
     ConcatResNet,
     SubtractCNN,
     SubtractResNet,
+    SubcatResNet,
     DUDA,
     BCNN,
     Detector

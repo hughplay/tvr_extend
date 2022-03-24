@@ -1,8 +1,0 @@
-_target_: model.SingleConcatMaskRCNN
-height: 120
-width: 160
-arch: 'resnet18'
-roi_output_size: [7, 7]
-roi_sample_ratio: -1
-fc_img_en: [128]
-fc_fusion: [128]

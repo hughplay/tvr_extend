@@ -10,6 +10,7 @@ move_out_aug: true
 
 use_box: false
 box_type: gt
+full_box: true
 
 batch_size: 128
 num_workers: 16

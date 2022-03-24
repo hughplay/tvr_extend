@@ -36,7 +36,7 @@ def main(cfg: DictConfig) -> None:
     trainer.fit(model, datamodule)
 
     if cfg.run_test:
-        trainer.test(model, datamodule=datamodule)
+        trainer.test(datamodule=datamodule, ckpt_path='best')
 
 
 if __name__ == '__main__':

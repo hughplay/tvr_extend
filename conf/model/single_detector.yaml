@@ -1,9 +1,13 @@
 _target_: model.SingleDetectorTranceNet
-arch: 'resnet18'
 mode: 'subtract'
+arch: 'resnet18'
 roi_type: 'pool'
+in_features: ['0', '1', '2', '3']
 roi_output_size: [2, 2]
 roi_sample_ratio: -1
+hidden_size: 256
+n_attn_layer: 2
+n_head: 8
 height: 120
 width: 160
 fc_img_en: [128]

@@ -6,7 +6,7 @@ defaults:
   - optim: adamw
   - scheduler: step
   - recorder: event
-  - callbacks: [checkpoint, lr_monitor]
+  - callbacks: [checkpoint, lr_monitor, early_stopping]
   - logging: null
   - mode: debug
   - pl_trainer: default
